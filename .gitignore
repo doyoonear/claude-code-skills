@@ -1,0 +1,6 @@
+# OS files
+.DS_Store
+
+# Backup folder (local only)
+backup/
+__pycache__/
