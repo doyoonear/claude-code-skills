@@ -5,5 +5,5 @@
 backup/
 __pycache__/
 
-# Custom skills (separate git repository)
-custom/
+# Claude configuration
+.claude/
