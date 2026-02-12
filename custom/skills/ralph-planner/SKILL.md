@@ -397,6 +397,7 @@ Implementation Plan 작성 시 **각 단계별 커밋 시점을 미리 명시**�
 
 ### 워크플로우 다이어그램
 
+**일반 작업:**
 ```
 ┌─────────────┐    ┌──────────┐    ┌──────────────────┐    ┌────────┐
 │ Phase 구현  │ → │  테스트   │ → │ HANDOFF.md 업데이트│ → │  커밋  │
@@ -405,8 +406,22 @@ Implementation Plan 작성 시 **각 단계별 커밋 시점을 미리 명시**�
        └──────────────── 다음 Phase ←───────────────────────────┘
 ```
 
+**퍼블리싱/디자인/FE 작업 (Playwright 검증 포함):**
+```
+┌─────────────┐    ┌──────────┐    ┌───────────────────┐    ┌──────────────────┐    ┌────────┐
+│ Phase 구현  │ → │  테스트   │ → │ Playwright 시각검증 │ → │ HANDOFF.md 업데이트│ → │  커밋  │
+└─────────────┘    └──────────┘    └───────────────────┘    └──────────────────┘    └────────┘
+       ↑                                  │ 문제 발견                                    │
+       │                                  ↓                                              │
+       │                           ┌──────────┐                                          │
+       │                           │   수정    │──→ 재검증                                │
+       │                           └──────────┘                                          │
+       └──────────────────────── 다음 Phase ←────────────────────────────────────────────┘
+```
+
 ### 예시 워크플로우
 
+**일반 작업:**
 ```
 1. 프리셋 타입 정의 구현
 2. 테스트/검증
@@ -417,6 +432,70 @@ Implementation Plan 작성 시 **각 단계별 커밋 시점을 미리 명시**�
 7. HANDOFF.md 업데이트 (Phase 2 완료, Phase 3 시작 예정)
 8. git add -A && git commit -m "feat: trainingStore에 프리셋 선택 상태 추가"
 9. ... 반복
+```
+
+**퍼블리싱/디자인/FE 작업:**
+```
+1. 컴포넌트 UI 구현
+2. 테스트/검증
+3. Playwright 시각 검증 (navigate → snapshot → screenshot → console 확인)
+4. 문제 발견 시 수정 후 3번 재실행
+5. HANDOFF.md 업데이트 (Phase 완료 + 검증 결과 기록)
+6. git add -A && git commit -m "feat: 헤더 컴포넌트 리디자인"
+7. 다음 Phase 반복
+```
+
+## Playwright 시각 검증 (퍼블리싱/디자인/FE 작업)
+
+퍼블리싱, 디자인, FE 관련 작업에서는 각 Phase 완료 후 커밋 전에 Playwright 시각 검증을 실행합니다.
+
+### 적용 대상
+
+다음 키워드가 포함된 작업에 자동 적용:
+- 컴포넌트 UI 변경, 스타일 수정, 레이아웃 변경
+- 색상, 타이포그래피, 간격 등 시각적 속성 변경
+- 반응형 디자인 작업
+- CSS/Tailwind 변경
+
+### 검증 절차
+
+```
+1. MCP Playwright browser_navigate → 해당 페이지 이동
+2. browser_snapshot → 접근성 스냅샷으로 구조 확인
+3. browser_take_screenshot → 시각적 렌더링 결과 캡처
+4. browser_console_messages (level: "warning") → 에러/경고 확인
+5. 문제 발견 시 → 수정 → 1번부터 재검증
+6. 문제 없음 → HANDOFF.md에 검증 결과 기록 → 커밋
+```
+
+### HANDOFF.md 검증 기록 형식
+
+```markdown
+## Phase N 검증 결과
+- 시각적 렌더링: OK / [이슈 설명]
+- 콘솔 에러: 없음 / [에러 내용]
+- 수정 사항: [수정한 내용] (해당 시)
+```
+
+### 도구 우선순위
+
+| 우선순위 | 도구 | 용도 |
+|----------|------|------|
+| **1순위** | MCP Playwright | browser_navigate, browser_snapshot, browser_take_screenshot, browser_console_messages |
+| **2순위** | Python Playwright | 복잡한 시나리오 (다중 페이지, 인터랙션 시퀀스). webapp-testing 스킬 활용 |
+
+### 프롬프트 생성 시 포함
+
+퍼블리싱/디자인/FE 작업의 프롬프트에는 다음을 추가:
+
+```markdown
+## Visual Verification
+각 Phase 완료 후, 커밋 전에 Playwright 시각 검증을 실행합니다:
+1. MCP Playwright로 해당 페이지 navigate
+2. browser_snapshot으로 구조 확인
+3. browser_take_screenshot으로 시각적 결과 캡처
+4. browser_console_messages로 에러/경고 확인
+5. 문제 발견 시 수정 후 재검증
 ```
 
 ## 주의사항

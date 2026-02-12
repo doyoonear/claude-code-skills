@@ -8,6 +8,7 @@ Claude Code와 다른 AI 에이전트에서 사용하는 커스텀 스킬과 에
 skills-and-agents/
 ├── README.md
 ├── install.sh              # symlink 동기화 스크립트
+├── install-skill.sh        # 외부 스킬 설치 래퍼 (skills CLI + 자동 정리)
 ├── custom/                 # 직접 작성한 스킬/에이전트
 │   ├── skills/            # 커스텀 스킬 (44개)
 │   └── agents/            # 커스텀 에이전트 (4개)
@@ -77,9 +78,44 @@ description: 스킬 설명 및 트리거 키워드
 스킬 지시사항...
 ```
 
-### External 스킬 추가
+### External 스킬 추가 (skills CLI 래퍼)
 
-외부 소스에서 스킬을 가져올 때:
+`install-skill.sh`를 사용하면 skills CLI로 설치한 스킬을 자동으로 `external/skills/`에 정리하고 symlink까지 생성합니다.
+
+```bash
+cd ~/Desktop/dev_else/_my-projects/skills-and-agents
+
+# 레포의 전체 스킬 목록 확인 후 선택 설치
+./install-skill.sh coreyhaines31/marketingskills
+
+# 특정 스킬만 지정 설치
+./install-skill.sh coreyhaines31/marketingskills -s ab-test-setup
+
+# 레포의 모든 스킬 일괄 설치
+./install-skill.sh coreyhaines31/marketingskills --all
+```
+
+**패키지 이름 형식** — 아래 세 가지 모두 동일하게 동작합니다:
+
+```bash
+# GitHub 축약형 (owner/repo) — 권장
+./install-skill.sh coreyhaines31/marketingskills
+
+# GitHub 전체 URL
+./install-skill.sh https://github.com/coreyhaines31/marketingskills
+
+# .git 확장자 포함 URL
+./install-skill.sh https://github.com/coreyhaines31/marketingskills.git
+```
+
+**동작 흐름:**
+1. `npx skills add <package> -g` 실행 (글로벌 설치)
+2. `~/.agents/skills/`에 생긴 새 스킬을 `external/skills/`로 자동 이동
+3. `install.sh` 실행하여 symlink 재생성 (`~/.agents/skills/`, `~/.claude/skills/`)
+
+### External 스킬 수동 추가
+
+래퍼 없이 직접 추가할 때:
 
 ```bash
 # 1. external/skills/에 복사
@@ -87,10 +123,6 @@ cp -r /path/to/external-skill external/skills/
 
 # 2. symlink 동기화
 ./install.sh
-
-# 3. Git commit
-git add external/skills/external-skill
-git commit -m "Add external skill: external-skill"
 ```
 
 ## 에이전트 관리
